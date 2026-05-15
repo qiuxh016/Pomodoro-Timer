@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>猫咪番茄钟</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <!-- Cat Pet -->
+  <div id="cat-container">
+    <svg id="cat-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tail -->
+      <path id="cat-tail" d="M95 85 Q115 70 108 52" fill="none" stroke="#F2B896" stroke-width="6" stroke-linecap="round"/>
+      <!-- Tiny body -->
+      <ellipse cx="62" cy="90" rx="26" ry="22" fill="#F8D0B0"/>
+      <!-- Belly -->
+      <ellipse cx="62" cy="94" rx="17" ry="14" fill="#FFF8F2"/>
+      <!-- Big round head -->
+      <circle cx="60" cy="55" r="32" fill="#F8D0B0"/>
+      <!-- Head stripes -->
+      <path d="M52 28 L54 38" stroke="#F2B896" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+      <path d="M60 26 L60 36" stroke="#F2B896" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+      <path d="M68 28 L66 38" stroke="#F2B896" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+      <!-- Big ears -->
+      <polygon points="36,38 26,12 52,30" fill="#F8D0B0"/>
+      <polygon points="38,36 30,18 49,31" fill="#FFB8B8"/>
+      <polygon points="84,38 94,12 68,30" fill="#F8D0B0"/>
+      <polygon points="82,36 90,18 71,31" fill="#FFB8B8"/>
+      <!-- Huge sparkly eyes -->
+      <ellipse cx="51" cy="54" rx="10" ry="11" fill="white"/>
+      <ellipse cx="71" cy="54" rx="10" ry="11" fill="white"/>
+      <ellipse cx="53" cy="55" rx="7" ry="8" fill="#3A3A3A"/>
+      <ellipse cx="73" cy="55" rx="7" ry="8" fill="#3A3A3A"/>
+      <circle cx="56" cy="51" r="3" fill="white"/>
+      <circle cx="76" cy="51" r="3" fill="white"/>
+      <circle cx="50" cy="58" r="1.5" fill="white"/>
+      <circle cx="70" cy="58" r="1.5" fill="white"/>
+      <!-- Blush -->
+      <ellipse cx="42" cy="64" rx="7" ry="4" fill="#FFC0C0" opacity="0.5"/>
+      <ellipse cx="78" cy="64" rx="7" ry="4" fill="#FFC0C0" opacity="0.5"/>
+      <!-- Tiny nose -->
+      <ellipse cx="60" cy="62" rx="3" ry="2" fill="#FFAAA0"/>
+      <!-- Cute mouth -->
+      <path d="M56 65 Q58 69 60 66 Q62 69 64 65" fill="none" stroke="#C09888" stroke-width="1.2" stroke-linecap="round"/>
+      <line x1="60" y1="64" x2="60" y2="66" stroke="#C09888" stroke-width="0.8"/>
+      <!-- Whiskers -->
+      <line x1="22" y1="58" x2="42" y2="62" stroke="#D8C0B0" stroke-width="0.7" opacity="0.6"/>
+      <line x1="20" y1="64" x2="42" y2="64" stroke="#D8C0B0" stroke-width="0.7" opacity="0.6"/>
+      <line x1="98" y1="58" x2="78" y2="62" stroke="#D8C0B0" stroke-width="0.7" opacity="0.6"/>
+      <line x1="100" y1="64" x2="78" y2="64" stroke="#D8C0B0" stroke-width="0.7" opacity="0.6"/>
+      <!-- Tiny paws -->
+      <ellipse cx="48" cy="110" rx="12" ry="6" fill="#F8D0B0"/>
+      <ellipse cx="76" cy="110" rx="12" ry="6" fill="#F8D0B0"/>
+      <circle cx="42" cy="111" r="2.5" fill="#FFC0C0"/>
+      <circle cx="48" cy="113" r="2.5" fill="#FFC0C0"/>
+      <circle cx="54" cy="111" r="2.5" fill="#FFC0C0"/>
+      <circle cx="70" cy="111" r="2.5" fill="#FFC0C0"/>
+      <circle cx="76" cy="113" r="2.5" fill="#FFC0C0"/>
+      <circle cx="82" cy="111" r="2.5" fill="#FFC0C0"/>
+      <!-- Blink overlay -->
+      <g id="cat-blink" opacity="0">
+        <ellipse cx="51" cy="54" rx="10" ry="11" fill="#F8D0B0"/>
+        <ellipse cx="71" cy="54" rx="10" ry="11" fill="#F8D0B0"/>
+        <line x1="41" y1="54" x2="61" y2="54" stroke="#3A3A3A" stroke-width="1.5"/>
+        <line x1="61" y1="54" x2="81" y2="54" stroke="#3A3A3A" stroke-width="1.5"/>
+      </g>
+      <!-- Focused working eyes -->
+      <g id="cat-focused" opacity="0">
+        <ellipse cx="51" cy="54" rx="10" ry="11" fill="white"/>
+        <ellipse cx="71" cy="54" rx="10" ry="11" fill="white"/>
+        <ellipse cx="53" cy="55" rx="5" ry="6" fill="#3A3A3A"/>
+        <ellipse cx="73" cy="55" rx="5" ry="6" fill="#3A3A3A"/>
+        <line x1="41" y1="50" x2="48" y2="54" stroke="#3A3A3A" stroke-width="3" stroke-linecap="round"/>
+        <line x1="79" y1="50" x2="72" y2="54" stroke="#3A3A3A" stroke-width="3" stroke-linecap="round"/>
+      </g>
+      <!-- Happy mouth -->
+      <path id="cat-happy-mouth" d="M54 63 Q60 75 66 63" fill="none" stroke="#C09888" stroke-width="1.5" stroke-linecap="round" opacity="0"/>
+      <!-- Sleeping overlay -->
+      <g id="cat-sleeping" opacity="0">
+        <path d="M44 53 Q48 56 52 53" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M64 53 Q68 56 72 53" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="78" y="32" font-size="8" fill="#8A9AA8" font-family="inherit" id="cat-zzz">Z</text>
+      </g>
+    </svg>
+    <!-- Speech bubble -->
+    <div id="speech-bubble" class="hidden"><span id="bubble-text"></span></div>
+  </div>
+
+  <!-- Countdown (collapsed) -->
+  <div id="cat-timer-display" style="display:none">
+    <span id="cat-timer-mode">专注</span>
+    <span id="cat-timer-time">25:00</span>
+  </div>
+
+  <!-- Main Panel -->
+  <div id="main-panel" class="hidden">
+    <div id="timer-section">
+      <div class="section-title">番茄钟</div>
+      <div id="timer-ring-container">
+        <svg id="timer-ring" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#EEE" stroke-width="5"/>
+          <circle id="ring-progress" cx="60" cy="60" r="52" fill="none" stroke="#48C9B0" stroke-width="5"
+                  stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="0"
+                  transform="rotate(-90 60 60)"/>
+        </svg>
+        <div id="timer-display">25:00</div>
+        <div id="timer-mode">专注</div>
+      </div>
+      <div id="timer-controls">
+        <button id="btn-start" class="timer-btn primary" onclick="window.app.timer.start()">开始</button>
+        <button id="btn-pause" class="timer-btn hidden" onclick="window.app.timer.pause()">暂停</button>
+        <button id="btn-reset" class="timer-btn" onclick="window.app.timer.reset()">重置</button>
+      </div>
+      <div id="mode-switcher">
+        <button class="mode-btn active" data-mode="work">工作</button>
+        <button class="mode-btn" data-mode="shortBreak">短休</button>
+        <button class="mode-btn" data-mode="longBreak">长休</button>
+      </div>
+      <div id="cycle-count">完成: 0 轮</div>
+      <div id="daily-stats">今日专注: 0 次</div>
+      <div id="focus-streak">连续专注: 0 天</div>
+      <button id="settings-toggle">设置</button>
+      <div id="settings-panel" class="hidden">
+        <div class="setting-row"><span class="setting-label">工作时长</span><span><input type="number" id="setting-work" class="setting-input" min="1" max="120" value="25"/><span class="setting-unit"> 分</span></span></div>
+        <div class="setting-row"><span class="setting-label">短休时长</span><span><input type="number" id="setting-short" class="setting-input" min="1" max="60" value="5"/><span class="setting-unit"> 分</span></span></div>
+        <div class="setting-row"><span class="setting-label">长休时长</span><span><input type="number" id="setting-long" class="setting-input" min="1" max="120" value="15"/><span class="setting-unit"> 分</span></span></div>
+        <div class="setting-row"><span class="setting-label">长休间隔</span><span><input type="number" id="setting-interval" class="setting-input" min="1" max="10" value="4"/><span class="setting-unit"> 轮</span></span></div>
+        <div class="setting-row"><span class="setting-label">自动开始休息</span><input type="checkbox" id="setting-autoBreak" checked/></div>
+      </div>
+    </div>
+    <div id="panel-divider"></div>
+    <div id="todo-section">
+      <div class="section-title">待办列表</div>
+      <div id="todo-input-area">
+        <input id="todo-input" type="text" placeholder="添加新任务..." maxlength="100"/>
+        <input id="todo-ddl" type="date" title="截止日期"/>
+        <button id="btn-daily" title="日常任务（每天自动重置）">🔄</button>
+        <button id="btn-add-todo">+</button>
+      </div>
+      <div id="todo-progress" class="hidden">
+        <div id="todo-progress-text">已完成 0/0</div>
+        <div id="todo-progress-bar"><div id="todo-progress-fill"></div></div>
+      </div>
+      <ul id="todo-list"></ul>
+      <div id="todo-empty" class="empty-hint">还没有任务，快来添加吧~</div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/cat.js"></script>
+  <script src="js/timer.js"></script>
+  <script src="js/todo.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
