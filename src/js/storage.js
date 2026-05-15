@@ -15,8 +15,8 @@ class StorageManager {
   set(key, value) {
     try {
       localStorage.setItem(this.prefix + key, JSON.stringify(value));
-    } catch {
-      // localStorage full or unavailable
+    } catch (e) {
+      console.error('Storage set failed:', key, e);
     }
   }
 
@@ -70,7 +70,7 @@ function saveTodos(todos) {
   storage.set('todos', todos);
 }
 
-function addTodo(text, ddl = null, notes = '', daily = false, order = null, priority = 'medium') {
+function createTodo(text, ddl = null, notes = '', daily = false, order = null, priority = 'medium') {
   const todos = loadTodos();
   if (order === null) {
     const maxOrder = todos.reduce((max, t) => Math.max(max, t.order || 0), -1);
@@ -129,6 +129,16 @@ function updateTodoNotes(id, notes) {
   const todo = todos.find(t => t.id === id);
   if (todo) {
     todo.notes = notes;
+    saveTodos(todos);
+  }
+  return todos;
+}
+
+function updateTodoPriority(id, priority) {
+  const todos = loadTodos();
+  const todo = todos.find(t => t.id === id);
+  if (todo) {
+    todo.priority = priority;
     saveTodos(todos);
   }
   return todos;

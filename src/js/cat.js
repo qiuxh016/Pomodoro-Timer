@@ -54,7 +54,7 @@ class CatPet {
   createContextMenu() {
     this.ctxMenu = document.createElement('div');
     this.ctxMenu.id = 'cat-context-menu';
-    this.ctxMenu.className = 'cat-context-menu';
+    this.ctxMenu.className = 'cat-context-menu hidden';
     this.ctxMenu.innerHTML = `
       <div class="ctx-menu-item" data-action="toggle">显示/隐藏面板</div>
       <div class="ctx-menu-divider"></div>
@@ -268,8 +268,11 @@ class CatPet {
       e.preventDefault();
       if (!this.ctxMenu) return;
       const rect = this.container.getBoundingClientRect();
-      this.ctxMenu.style.left = (rect.left + 70) + 'px';
-      this.ctxMenu.style.top = (rect.top + 20) + 'px';
+      // Position near the cat horizontally, above the cat if room, else at window top
+      this.ctxMenu.style.left = Math.round(rect.left) + 'px';
+      const menuH = 62;
+      const top = rect.top - menuH - 2;
+      this.ctxMenu.style.top = (top >= 0 ? top : 4) + 'px';
       this.ctxMenu.classList.remove('hidden');
     });
   }

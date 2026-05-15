@@ -3,15 +3,26 @@ class App {
     this.isExpanded = false;
     this.panel = document.getElementById('main-panel');
 
-    // Create timer and todo IMMEDIATELY (before any async work)
-    this.timer = new PomodoroTimer();
-    this.todo = new TodoList();
-
     // Set global reference right away so onclick handlers work
     window.app = this;
 
+    // Create timer and todo (wrapped so panel toggle works even on error)
+    try {
+      this.timer = new PomodoroTimer();
+    } catch (e) {
+      console.error('Timer init failed:', e);
+    }
+    try {
+      this.todo = new TodoList();
+    } catch (e) {
+      console.error('Todo init failed:', e);
+    }
+
     // Keyboard shortcuts
     this._setupKeyboard();
+
+    // Click outside panel to collapse
+    this._setupOutsideClick();
 
     // Async init for IPC (non-blocking)
     this._asyncInit();
@@ -28,6 +39,17 @@ class App {
       } else if (e.code === 'KeyR') {
         if (this.timer) this.timer.reset();
       }
+    });
+  }
+
+  _setupOutsideClick() {
+    document.addEventListener('click', (e) => {
+      if (!this.isExpanded) return;
+      const catEl = document.getElementById('cat-container');
+      // Ignore clicks inside panel or on the cat
+      if (this.panel && this.panel.contains(e.target)) return;
+      if (catEl && catEl.contains(e.target)) return;
+      this.togglePanel();
     });
   }
 
@@ -103,7 +125,7 @@ class App {
     if (this.isExpanded) {
       this.panel.classList.remove('hidden');
       await window.electronAPI.setSkipTaskbar(false);
-      await window.electronAPI.resizeWindow({ width: 840, height: 600 });
+      await window.electronAPI.resizeWindow({ width: 1020, height: 700 });
     } else {
       this.panel.classList.add('hidden');
       const sp = document.getElementById('settings-panel');

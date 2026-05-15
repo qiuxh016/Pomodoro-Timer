@@ -163,11 +163,11 @@
     <div id="todo-section">
       <div class="section-title">待办列表</div>
       <div id="todo-input-area">
-        <input id="todo-input" type="text" placeholder="添加新任务..." maxlength="100"/>
+        <input id="todo-input" type="text" placeholder="添加新任务..." maxlength="100" onkeydown="if(event.key==='Enter'&&window.app&&window.app.todo)window.app.todo.addTodo()"/>
         <input id="todo-ddl" type="date" title="截止日期"/>
         <button id="btn-daily" title="日常任务（每天自动重置）">🔄</button>
         <button id="btn-priority" class="priority-selector" data-priority="medium" title="优先级：中">🟡</button>
-        <button id="btn-add-todo">+</button>
+        <button id="btn-add-todo" onclick="window.app&&window.app.todo&&window.app.todo.addTodo()">+</button>
       </div>
       <div id="todo-progress" class="hidden">
         <div id="todo-progress-text">已完成 0/0</div>

@@ -30,7 +30,9 @@
       "PowerShell(& \"D:\\\\cursor\\\\Pomodoro-Timer\\\\node_modules\\\\electron\\\\dist\\\\electron.exe\" --version 2>&1)",
       "Bash(Start-Process -FilePath \"node_modules\\\\electron\\\\dist\\\\electron.exe\" -ArgumentList \".\" -Wait -NoNewWindow)",
       "PowerShell(Stop-Process *)",
-      "PowerShell(cd \"D:\\\\cursor\\\\Pomodoro-Timer\"; $proc = Start-Process -FilePath \"node_modules\\\\electron\\\\dist\\\\electron.exe\" -ArgumentList \".\" -PassThru -RedirectStandardError \"stderr.log\"; Start-Sleep -Seconds 4; if \\($proc.HasExited\\) { Write-Output \"Exited \\(code: $\\($proc.ExitCode\\)\\)\"; Write-Output \"--- stderr ---\"; Get-Content stderr.log -ErrorAction SilentlyContinue } else { Write-Output \"App running \\(PID: $\\($proc.Id\\)\\)\" })"
+      "PowerShell(cd \"D:\\\\cursor\\\\Pomodoro-Timer\"; $proc = Start-Process -FilePath \"node_modules\\\\electron\\\\dist\\\\electron.exe\" -ArgumentList \".\" -PassThru -RedirectStandardError \"stderr.log\"; Start-Sleep -Seconds 4; if \\($proc.HasExited\\) { Write-Output \"Exited \\(code: $\\($proc.ExitCode\\)\\)\"; Write-Output \"--- stderr ---\"; Get-Content stderr.log -ErrorAction SilentlyContinue } else { Write-Output \"App running \\(PID: $\\($proc.Id\\)\\)\" })",
+      "Bash(Get-ChildItem *)",
+      "PowerShell(Start-Process -FilePath \"D:\\\\cursor\\\\Pomodoro-Timer\\\\start.bat\" -WorkingDirectory \"D:\\\\cursor\\\\Pomodoro-Timer\")"
     ]
   }
 }

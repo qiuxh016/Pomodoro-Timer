@@ -1,14 +1,15 @@
 class TodoList {
   constructor() {
-    this.todos = loadTodos();
+    this.todos = [];
     this.expandedIds = new Set();
     this.dailyMode = false;
     this.currentPriority = 'medium';
     this.filterText = '';
     this.filterPri = 'all';
 
-    this.initDom();
-    this.init();
+    try { this.todos = loadTodos(); } catch (e) { console.error(e); }
+    try { this.initDom(); } catch (e) { console.error(e); }
+    try { this.init(); } catch (e) { console.error(e); }
   }
 
   initDom() {
@@ -30,8 +31,8 @@ class TodoList {
   init() {
     this.render();
 
-    this.addBtn.addEventListener('click', () => this.addTodo());
-    this.input.addEventListener('keydown', (e) => {
+    if (this.addBtn) this.addBtn.addEventListener('click', () => this.addTodo());
+    if (this.input) this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') this.addTodo();
     });
     if (this.dailyBtn) {
@@ -90,7 +91,7 @@ class TodoList {
     }
 
     // Delegate clicks for subtask toggle/delete and task select-in-timer
-    this.listEl.addEventListener('click', (e) => {
+    if (this.listEl) this.listEl.addEventListener('click', (e) => {
       const subtaskCb = e.target.closest('.todo-subtask-checkbox');
       const subtaskDel = e.target.closest('.todo-subtask-delete');
       const pomodoroBadge = e.target.closest('.todo-pomodoro');
@@ -120,7 +121,7 @@ class TodoList {
     });
 
     // Delegate keypress for subtask input
-    this.listEl.addEventListener('keydown', (e) => {
+    if (this.listEl) this.listEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && e.target.classList.contains('subtask-input-field')) {
         e.preventDefault();
         const taskId = parseInt(e.target.dataset.taskId);
@@ -134,12 +135,13 @@ class TodoList {
   }
 
   addTodo() {
+    if (!this.input) return;
     const text = this.input.value.trim();
     if (!text) return;
 
     const ddl = this.dailyMode ? null : (this.ddlInput.value || null);
     const order = this.getInsertOrder(ddl, this.dailyMode);
-    this.todos = addTodo(text, ddl, '', this.dailyMode, order, this.currentPriority);
+    this.todos = createTodo(text, ddl, '', this.dailyMode, order, this.currentPriority);
     this.input.value = '';
     this.ddlInput.value = '';
     // Reset daily mode
@@ -315,6 +317,15 @@ class TodoList {
 
   // ---- Render ----
   render() {
+    try {
+      this._renderImpl();
+    } catch (e) {
+      console.error('Render error:', e);
+    }
+  }
+
+  _renderImpl() {
+    if (!this.listEl || !this.emptyHint || !this.progressEl) return;
     this.listEl.innerHTML = '';
 
     if (window.app && window.app.timer) {
@@ -414,28 +425,58 @@ class TodoList {
       const priorityBadge = document.createElement('span');
       priorityBadge.className = `todo-priority ${prio}`;
       priorityBadge.textContent = priorityLabels[prio];
-      priorityBadge.title = '双击关联到计时器';
+      priorityBadge.title = '点击切换优先级';
+      priorityBadge.style.cursor = 'pointer';
+      priorityBadge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cycle = ['high', 'medium', 'low'];
+        const idx = cycle.indexOf(todo.priority || 'medium');
+        const next = cycle[(idx + 1) % 3];
+        this.todos = updateTodoPriority(todo.id, next);
+        todo.priority = next;
+        this.render();
+      });
 
       // DDL badge and daily badge
       const ddlInfo = this.getDdlInfo(todo.ddl);
-      li.appendChild(handle);
-      li.appendChild(checkbox);
-      li.appendChild(text);
-      li.appendChild(priorityBadge);
+
+      // ---- Build layout ----
+
+      const subtasks = todo.subtasks || [];
+
+      // Row 1: main row — all info in one line
+      const mainRow = document.createElement('div');
+      mainRow.className = 'todo-main-row';
+
+      mainRow.appendChild(handle);
+      mainRow.appendChild(checkbox);
+      mainRow.appendChild(text);
+
+      // Priority badge (inline)
+      mainRow.appendChild(priorityBadge);
       if (todo.daily) {
         const dailyBadge = document.createElement('span');
         dailyBadge.className = 'todo-daily';
         dailyBadge.textContent = '日常';
-        li.appendChild(dailyBadge);
+        mainRow.appendChild(dailyBadge);
       }
       if (ddlInfo) {
         const badge = document.createElement('span');
         badge.className = `todo-ddl ${ddlInfo.cls}`;
         badge.textContent = ddlInfo.label;
-        li.appendChild(badge);
+        mainRow.appendChild(badge);
       }
 
-      // Pomodoro badge
+      // Subtask progress bar (inline, compact)
+      if (subtasks.length > 0) {
+        const subDone = subtasks.filter(s => s.completed).length;
+        const subPill = document.createElement('span');
+        subPill.className = 'todo-subtask-pill';
+        subPill.textContent = `${subDone}/${subtasks.length}`;
+        mainRow.appendChild(subPill);
+      }
+
+      // Pomodoro badge (inline)
       if (todo.pomodoroCount > 0) {
         const pomoBadge = document.createElement('span');
         pomoBadge.className = 'todo-pomodoro';
@@ -443,30 +484,20 @@ class TodoList {
         pomoBadge.dataset.taskId = todo.id;
         pomoBadge.title = '点击关联此任务到计时器';
         pomoBadge.style.cursor = 'pointer';
-        li.appendChild(pomoBadge);
-      }
-
-      // Subtask progress (visible collapsed)
-      const subtasks = todo.subtasks || [];
-      if (subtasks.length > 0) {
-        const subDone = subtasks.filter(s => s.completed).length;
-        const subProgSpan = document.createElement('span');
-        subProgSpan.className = 'todo-subtask-progress';
-        subProgSpan.textContent = `${subDone}/${subtasks.length}`;
-        li.appendChild(subProgSpan);
+        mainRow.appendChild(pomoBadge);
       }
 
       // Expand toggle
-      const expandBtn = document.createElement('button');
       const isExpanded = this.expandedIds.has(todo.id);
+      const expandBtn = document.createElement('button');
       expandBtn.className = 'todo-expand';
       expandBtn.textContent = isExpanded ? '▲' : '▼';
-      expandBtn.title = isExpanded ? '收起备注' : '展开备注';
+      expandBtn.title = isExpanded ? '收起详情' : '展开详情';
       expandBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleExpand(todo.id);
       });
-      li.appendChild(expandBtn);
+      mainRow.appendChild(expandBtn);
 
       // Delete
       const delBtn = document.createElement('button');
@@ -476,53 +507,46 @@ class TodoList {
         e.stopPropagation();
         this.remove(todo.id);
       });
-      li.appendChild(delBtn);
+      mainRow.appendChild(delBtn);
 
-      // Notes panel (expanded) — inside li as full-width row
+      li.appendChild(mainRow);
+
+      // Expanded: subtasks + notes (compact)
       if (isExpanded) {
-        const notesEl = document.createElement('div');
-        notesEl.className = 'todo-notes';
-        notesEl.contentEditable = 'true';
-        notesEl.textContent = todo.notes || '';
-        notesEl.addEventListener('blur', () => {
-          this.saveNotes(todo.id, notesEl.textContent || '');
-        });
-        notesEl.addEventListener('mousedown', (e) => {
-          e.stopPropagation();
-        });
-        notesEl.addEventListener('keydown', (e) => {
-          e.stopPropagation();
-        });
-        li.appendChild(notesEl);
+        const expandedWrap = document.createElement('div');
+        expandedWrap.className = 'todo-expanded-content';
 
-        // Subtasks
-        const subtaskContainer = document.createElement('div');
-        subtaskContainer.className = 'todo-subtasks';
+        if (subtasks.length > 0) {
+          const subtaskContainer = document.createElement('div');
+          subtaskContainer.className = 'todo-subtasks';
 
-        subtasks.forEach((sub, idx) => {
-          const item = document.createElement('div');
-          item.className = 'todo-subtask-item';
+          subtasks.forEach((sub, idx) => {
+            const item = document.createElement('div');
+            item.className = 'todo-subtask-item';
 
-          const cb = document.createElement('div');
-          cb.className = `todo-subtask-checkbox${sub.completed ? ' checked' : ''}`;
-          cb.dataset.taskId = todo.id;
-          cb.dataset.subIdx = String(idx);
+            const cb = document.createElement('div');
+            cb.className = `todo-subtask-checkbox${sub.completed ? ' checked' : ''}`;
+            cb.dataset.taskId = todo.id;
+            cb.dataset.subIdx = String(idx);
 
-          const subText = document.createElement('span');
-          subText.className = `todo-subtask-text${sub.completed ? ' done' : ''}`;
-          subText.textContent = sub.text;
+            const subText = document.createElement('span');
+            subText.className = `todo-subtask-text${sub.completed ? ' done' : ''}`;
+            subText.textContent = sub.text;
 
-          const del = document.createElement('button');
-          del.className = 'todo-subtask-delete';
-          del.textContent = '×';
-          del.dataset.taskId = todo.id;
-          del.dataset.subIdx = String(idx);
+            const del = document.createElement('button');
+            del.className = 'todo-subtask-delete';
+            del.textContent = '×';
+            del.dataset.taskId = todo.id;
+            del.dataset.subIdx = String(idx);
 
-          item.appendChild(cb);
-          item.appendChild(subText);
-          item.appendChild(del);
-          subtaskContainer.appendChild(item);
-        });
+            item.appendChild(cb);
+            item.appendChild(subText);
+            item.appendChild(del);
+            subtaskContainer.appendChild(item);
+          });
+
+          expandedWrap.appendChild(subtaskContainer);
+        }
 
         // Add subtask input
         const subInput = document.createElement('div');
@@ -544,9 +568,25 @@ class TodoList {
         });
         subInput.appendChild(input);
         subInput.appendChild(addBtn);
+        expandedWrap.appendChild(subInput);
 
-        subtaskContainer.appendChild(subInput);
-        li.appendChild(subtaskContainer);
+        // Notes
+        const notesEl = document.createElement('div');
+        notesEl.className = 'todo-notes';
+        notesEl.contentEditable = 'true';
+        notesEl.textContent = todo.notes || '';
+        notesEl.addEventListener('blur', () => {
+          this.saveNotes(todo.id, notesEl.textContent || '');
+        });
+        notesEl.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+        });
+        notesEl.addEventListener('keydown', (e) => {
+          e.stopPropagation();
+        });
+        expandedWrap.appendChild(notesEl);
+
+        li.appendChild(expandedWrap);
       }
 
       this.listEl.appendChild(li);
