@@ -29,6 +29,10 @@ class PomodoroTimer {
     this.catTimerMode = document.getElementById('cat-timer-mode');
     this.dailyStats = document.getElementById('daily-stats');
     this.streakEl = document.getElementById('focus-streak');
+    this.skipBtn = document.getElementById('btn-skip');
+    this.extendBtn = document.getElementById('btn-extend');
+    this.taskSelect = document.getElementById('task-select');
+    this.activeTaskId = this.state.activeTaskId || null;
   }
 
   init() {
@@ -37,6 +41,7 @@ class PomodoroTimer {
     this.updateModeButtons();
     this.updateDailyStats();
     this.updateStreakDisplay();
+    this.refreshTaskSelector();
 
     if (this.btnStart) this.btnStart.addEventListener('click', () => this.start());
     if (this.btnPause) this.btnPause.addEventListener('click', () => this.pause());
@@ -47,6 +52,23 @@ class PomodoroTimer {
         if (!this.isRunning) this.switchMode(btn.dataset.mode);
       });
     });
+
+    if (this.taskSelect) {
+      this.taskSelect.addEventListener('change', () => {
+        this.activeTaskId = this.taskSelect.value ? parseInt(this.taskSelect.value) : null;
+        this.saveState();
+        if (this.isRunning) this.showCatTimer();
+      });
+    }
+  }
+
+  getModeColors() {
+    switch (this.currentMode) {
+      case 'work':       return { main: '#48C9B0', light: '#A3E4D7', flash: '#52C9A6' };
+      case 'shortBreak': return { main: '#F0A060', light: '#FAD4B0', flash: '#F5B870' };
+      case 'longBreak':  return { main: '#9B7EC4', light: '#D0C4E8', flash: '#AE93D4' };
+      default:           return { main: '#48C9B0', light: '#A3E4D7', flash: '#52C9A6' };
+    }
   }
 
   getDuration(mode) {
@@ -66,6 +88,9 @@ class PomodoroTimer {
 
     if (this.btnStart) this.btnStart.classList.add('hidden');
     if (this.btnPause) this.btnPause.classList.remove('hidden');
+    // Show skip button for breaks, extend button for work
+    if (this.skipBtn) this.skipBtn.classList.toggle('hidden', this.currentMode === 'work');
+    if (this.extendBtn) this.extendBtn.classList.toggle('hidden', this.currentMode !== 'work');
 
     if (window.cat) window.cat.setState('working');
     this.showCatTimer();
@@ -80,6 +105,8 @@ class PomodoroTimer {
 
     if (this.btnPause) this.btnPause.classList.add('hidden');
     if (this.btnStart) this.btnStart.classList.remove('hidden');
+    if (this.skipBtn) this.skipBtn.classList.add('hidden');
+    if (this.extendBtn) this.extendBtn.classList.add('hidden');
 
     if (window.cat) window.cat.setState('idle');
     this.hideCatTimer();
@@ -93,6 +120,8 @@ class PomodoroTimer {
 
     if (this.btnPause) this.btnPause.classList.add('hidden');
     if (this.btnStart) this.btnStart.classList.remove('hidden');
+    if (this.skipBtn) this.skipBtn.classList.add('hidden');
+    if (this.extendBtn) this.extendBtn.classList.add('hidden');
 
     this.updateDisplay();
     this.updateRing();
@@ -103,6 +132,36 @@ class PomodoroTimer {
 
   toggle() {
     this.isRunning ? this.pause() : this.start();
+  }
+
+  skipBreak() {
+    if (this.currentMode === 'work') return;
+    this.isRunning = false;
+    clearInterval(this.intervalId);
+    this.switchToMode('work');
+    this.timeLeft = this.getDuration('work') * 60;
+    this.updateDisplay();
+    this.updateRing();
+    this.updateModeButtons();
+    if (this.skipBtn) this.skipBtn.classList.add('hidden');
+    if (this.extendBtn) this.extendBtn.classList.add('hidden');
+    if (this.btnPause) this.btnPause.classList.add('hidden');
+    if (this.btnStart) this.btnStart.classList.remove('hidden');
+    if (window.cat) {
+      window.cat.setState('idle');
+      window.cat.showBubble('好！继续加油~');
+    }
+    this.hideCatTimer();
+    this.saveState();
+  }
+
+  extendWork() {
+    if (this.currentMode !== 'work' || !this.isRunning) return;
+    this.timeLeft += 300; // +5 minutes
+    this.totalSeconds += 300;
+    this.updateDisplay();
+    this.updateRing();
+    if (window.cat) window.cat.showBubble('再加5分钟！加油~');
   }
 
   tick() {
@@ -139,9 +198,26 @@ class PomodoroTimer {
       this.cycles++;
       this.state.cycles = this.cycles;
       incrementDailyCount();
-      updateFocusStreak();
+
+      if (this.activeTaskId) {
+        updatePomodoroCount(this.activeTaskId);
+        if (window.app && window.app.todo) {
+          window.app.todo.render();
+        }
+      }
+
+      const streakData = updateFocusStreak();
       this.updateDailyStats();
       this.updateStreakDisplay();
+
+      // Check outfit unlocks
+      const { newlyUnlocked } = checkAndUnlockOutfits(streakData.streak);
+      if (newlyUnlocked.length > 0 && window.cat) {
+        const names = newlyUnlocked.map(o => o.label).join('、');
+        window.cat.showBubble(`解锁新装扮：${names}！`, 4000);
+        window.cat.refreshOutfits();
+      }
+
       const tip = breakTips[Math.floor(Math.random() * breakTips.length)];
       if (this.cycles % this.settings.longBreakInterval === 0) {
         this.switchToMode('longBreak');
@@ -151,10 +227,16 @@ class PomodoroTimer {
         if (window.cat) window.cat.showBubble(tip);
       }
       if (window.cat) window.cat.setState('happy');
+
+      // Desktop notification
+      this._notify('专注完成！', '休息一下吧，站起来活动活动~');
     } else {
       this.switchToMode('work');
       if (window.cat) window.cat.showBubble('准备好专注了吗？');
       if (window.cat) window.cat.setState('happy');
+
+      // Desktop notification
+      this._notify('休息结束', '准备开始新的专注吧！');
     }
 
     this.timeLeft = this.getDuration(this.currentMode) * 60;
@@ -197,18 +279,26 @@ class PomodoroTimer {
     const secs = this.timeLeft % 60;
     const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-    if (this.display) this.display.textContent = timeStr;
-
+    const colors = this.getModeColors();
     const modeNames = { work: '专注', shortBreak: '短休', longBreak: '长休' };
     const modeStr = modeNames[this.currentMode] || '专注';
-    if (this.modeLabel) this.modeLabel.textContent = modeStr;
 
+    if (this.display) this.display.textContent = timeStr;
+    if (this.modeLabel) {
+      this.modeLabel.textContent = modeStr;
+      this.modeLabel.style.color = colors.main;
+    }
     if (this.catTimerTime) this.catTimerTime.textContent = timeStr;
-    if (this.catTimerMode) this.catTimerMode.textContent = modeStr;
+    if (this.catTimerMode) {
+      this.catTimerMode.textContent = modeStr;
+      this.catTimerMode.style.color = colors.main;
+    }
   }
 
   updateRing() {
     if (!this.ringProgress) return;
+    const colors = this.getModeColors();
+    this.ringProgress.style.stroke = colors.main;
     if (!this.isRunning && this.timeLeft === this.getDuration(this.currentMode) * 60) {
       this.ringProgress.style.strokeDashoffset = '0';
       return;
@@ -219,8 +309,11 @@ class PomodoroTimer {
   }
 
   updateModeButtons() {
+    const colors = this.getModeColors();
     document.querySelectorAll('.mode-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.mode === this.currentMode);
+      const isActive = btn.dataset.mode === this.currentMode;
+      btn.classList.toggle('active', isActive);
+      if (isActive) btn.style.color = colors.main;
     });
   }
 
@@ -228,9 +321,38 @@ class PomodoroTimer {
     if (this.cycleCount) this.cycleCount.textContent = `完成: ${this.cycles} 轮`;
   }
 
+  refreshTaskSelector() {
+    if (!this.taskSelect) return;
+    const todos = loadTodos();
+    const incomplete = todos.filter(t => !t.completed);
+    const currentVal = this.taskSelect.value;
+    this.taskSelect.innerHTML = '<option value="">-- 关联任务 --</option>';
+    incomplete.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = String(t.id);
+      opt.textContent = t.text.length > 15 ? t.text.slice(0, 15) + '...' : t.text;
+      this.taskSelect.appendChild(opt);
+    });
+    if (this.activeTaskId && incomplete.some(t => t.id === this.activeTaskId)) {
+      this.taskSelect.value = String(this.activeTaskId);
+    } else if (this.activeTaskId && !incomplete.some(t => t.id === this.activeTaskId)) {
+      this.activeTaskId = null;
+      this.saveState();
+    } else {
+      this.taskSelect.value = currentVal;
+    }
+  }
+
   showCatTimer() {
     if (!this.catTimerEl) return;
     this.updateDisplay();
+    if (this.activeTaskId) {
+      const todos = loadTodos();
+      const task = todos.find(t => t.id === this.activeTaskId);
+      if (task && this.catTimerMode) {
+        this.catTimerMode.textContent = '正在做: ' + (task.text.length > 8 ? task.text.slice(0, 8) + '...' : task.text);
+      }
+    }
     this.catTimerEl.style.setProperty('display', 'flex', 'important');
   }
 
@@ -249,8 +371,11 @@ class PomodoroTimer {
 
   flashComplete() {
     if (this.ringProgress) {
-      this.ringProgress.style.stroke = '#52C9A6';
-      setTimeout(() => { if (this.ringProgress) this.ringProgress.style.stroke = '#48C9B0'; }, 1500);
+      const colors = this.getModeColors();
+      this.ringProgress.style.stroke = colors.flash;
+      setTimeout(() => {
+        if (this.ringProgress) this.ringProgress.style.stroke = colors.main;
+      }, 1500);
     }
   }
 
@@ -266,6 +391,20 @@ class PomodoroTimer {
     if (this.streakEl) {
       const fire = streak.streak >= 7 ? ' 🔥' : '';
       this.streakEl.textContent = `连续专注: ${streak.streak} 天${fire}`;
+    }
+  }
+
+  _notify(title, body) {
+    try {
+      if (Notification.permission === 'granted') {
+        new Notification(title, { body, silent: true });
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then(p => {
+          if (p === 'granted') new Notification(title, { body, silent: true });
+        });
+      }
+    } catch {
+      // Notifications not supported
     }
   }
 
@@ -292,6 +431,6 @@ class PomodoroTimer {
   }
 
   saveState() {
-    saveTimerState({ mode: this.currentMode, cycles: this.cycles });
+    saveTimerState({ mode: this.currentMode, cycles: this.cycles, activeTaskId: this.activeTaskId });
   }
 }

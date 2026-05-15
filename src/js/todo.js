@@ -1,6 +1,17 @@
 class TodoList {
   constructor() {
     this.todos = loadTodos();
+    this.expandedIds = new Set();
+    this.dailyMode = false;
+    this.currentPriority = 'medium';
+    this.filterText = '';
+    this.filterPri = 'all';
+
+    this.initDom();
+    this.init();
+  }
+
+  initDom() {
     this.input = document.getElementById('todo-input');
     this.ddlInput = document.getElementById('todo-ddl');
     this.listEl = document.getElementById('todo-list');
@@ -10,10 +21,10 @@ class TodoList {
     this.progressEl = document.getElementById('todo-progress');
     this.progressText = document.getElementById('todo-progress-text');
     this.progressFill = document.getElementById('todo-progress-fill');
-    this.expandedIds = new Set();
-    this.dailyMode = false;
-
-    this.init();
+    this.priorityBtn = document.getElementById('btn-priority');
+    this.filterSearch = document.getElementById('filter-search');
+    this.filterPriority = document.getElementById('filter-priority');
+    this.clearBtn = document.getElementById('btn-clear-completed');
   }
 
   init() {
@@ -37,6 +48,89 @@ class TodoList {
         }
       });
     }
+
+    // Priority toggle
+    if (this.priorityBtn) {
+      const labels = { high: '🔴', medium: '🟡', low: '🟢' };
+      const cycle = ['high', 'medium', 'low'];
+      this.priorityBtn.addEventListener('click', () => {
+        const idx = cycle.indexOf(this.currentPriority);
+        this.currentPriority = cycle[(idx + 1) % 3];
+        this.priorityBtn.setAttribute('data-priority', this.currentPriority);
+        this.priorityBtn.textContent = labels[this.currentPriority];
+        const titles = { high: '优先级：高', medium: '优先级：中', low: '优先级：低' };
+        this.priorityBtn.title = titles[this.currentPriority];
+      });
+    }
+
+    // Filter
+    if (this.filterSearch) {
+      this.filterSearch.addEventListener('input', () => {
+        this.filterText = this.filterSearch.value.trim().toLowerCase();
+        this.render();
+      });
+    }
+    if (this.filterPriority) {
+      this.filterPriority.addEventListener('change', () => {
+        this.filterPri = this.filterPriority.value;
+        this.render();
+      });
+    }
+
+    // Clear completed
+    if (this.clearBtn) {
+      this.clearBtn.addEventListener('click', () => {
+        const completed = this.todos.filter(t => t.completed);
+        if (completed.length === 0) return;
+        if (confirm(`确定清除 ${completed.length} 条已完成任务？`)) {
+          this.todos = clearCompletedTodos();
+          this.render();
+        }
+      });
+    }
+
+    // Delegate clicks for subtask toggle/delete and task select-in-timer
+    this.listEl.addEventListener('click', (e) => {
+      const subtaskCb = e.target.closest('.todo-subtask-checkbox');
+      const subtaskDel = e.target.closest('.todo-subtask-delete');
+      const pomodoroBadge = e.target.closest('.todo-pomodoro');
+
+      if (subtaskCb) {
+        e.stopPropagation();
+        const taskId = parseInt(subtaskCb.dataset.taskId);
+        const subIdx = parseInt(subtaskCb.dataset.subIdx);
+        this.todos = toggleSubtask(taskId, subIdx);
+        this.render();
+      } else if (subtaskDel) {
+        e.stopPropagation();
+        const taskId = parseInt(subtaskDel.dataset.taskId);
+        const subIdx = parseInt(subtaskDel.dataset.subIdx);
+        this.todos = deleteSubtask(taskId, subIdx);
+        this.render();
+      } else if (pomodoroBadge) {
+        e.stopPropagation();
+        const taskId = parseInt(pomodoroBadge.dataset.taskId);
+        if (window.app && window.app.timer) {
+          window.app.timer.activeTaskId = taskId;
+          window.app.timer.refreshTaskSelector();
+          window.app.timer.saveState();
+          if (window.app.timer.isRunning) window.app.timer.showCatTimer();
+        }
+      }
+    });
+
+    // Delegate keypress for subtask input
+    this.listEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.classList.contains('subtask-input-field')) {
+        e.preventDefault();
+        const taskId = parseInt(e.target.dataset.taskId);
+        const text = e.target.value.trim();
+        if (text) {
+          this.todos = addSubtask(taskId, text);
+          this.render();
+        }
+      }
+    });
   }
 
   addTodo() {
@@ -45,7 +139,7 @@ class TodoList {
 
     const ddl = this.dailyMode ? null : (this.ddlInput.value || null);
     const order = this.getInsertOrder(ddl, this.dailyMode);
-    this.todos = addTodo(text, ddl, '', this.dailyMode, order);
+    this.todos = addTodo(text, ddl, '', this.dailyMode, order, this.currentPriority);
     this.input.value = '';
     this.ddlInput.value = '';
     // Reset daily mode
@@ -103,7 +197,13 @@ class TodoList {
     const dailyCompleted = completed.filter(t => t.daily);
     const regularCompleted = completed.filter(t => !t.daily);
 
-    const sortByOrder = (list) => [...list].sort((a, b) => a.order - b.order);
+    const priorityRank = { high: 0, medium: 1, low: 2 };
+    const sortByOrder = (list) => [...list].sort((a, b) => {
+      const pa = priorityRank[a.priority] ?? 1;
+      const pb = priorityRank[b.priority] ?? 1;
+      if (pa !== pb) return pa - pb;
+      return a.order - b.order;
+    });
 
     return [
       ...sortByOrder(dailyIncomplete),
@@ -217,6 +317,10 @@ class TodoList {
   render() {
     this.listEl.innerHTML = '';
 
+    if (window.app && window.app.timer) {
+      window.app.timer.refreshTaskSelector();
+    }
+
     if (this.todos.length === 0) {
       this.emptyHint.classList.remove('hidden');
       this.listEl.classList.add('hidden');
@@ -231,11 +335,20 @@ class TodoList {
     const total = sorted.length;
     const done = sorted.filter(t => t.completed).length;
 
-    if (this.progressText) this.progressText.textContent = `已完成 ${done}/${total}`;
+    if (this.progressText) this.progressText.textContent = `待完成: ${total - done}  已完成: ${done}`;
     if (this.progressFill) this.progressFill.style.width = `${Math.round((done / total) * 100)}%`;
     this.progressEl.classList.remove('hidden');
 
-    sorted.forEach(todo => {
+    // Use filtered list for display
+    let displayList = sorted;
+    if (this.filterText) {
+      displayList = displayList.filter(t => t.text.toLowerCase().includes(this.filterText));
+    }
+    if (this.filterPri !== 'all') {
+      displayList = displayList.filter(t => (t.priority || 'medium') === this.filterPri);
+    }
+
+    displayList.forEach(todo => {
       const li = document.createElement('li');
       li.setAttribute('data-id', todo.id);
       li.addEventListener('dragover', (e) => this.dragOver(e, todo.id));
@@ -258,16 +371,57 @@ class TodoList {
         this.toggle(todo.id);
       });
 
-      // Text
+      // Text (double-click to edit)
       const text = document.createElement('span');
       text.className = `todo-text${todo.completed ? ' completed' : ''}`;
       text.textContent = todo.text;
+      text.title = '双击编辑任务名称';
+      text.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (todo.completed) return;
+        text.contentEditable = 'true';
+        text.focus();
+        // Select all text
+        const range = document.createRange();
+        range.selectNodeContents(text);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+      text.addEventListener('blur', () => {
+        text.contentEditable = 'false';
+        const newText = text.textContent.trim();
+        if (newText && newText !== todo.text) {
+          this.todos = updateTodoText(todo.id, newText);
+        } else {
+          text.textContent = todo.text;
+        }
+      });
+      text.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          text.blur();
+        }
+        if (e.key === 'Escape') {
+          text.textContent = todo.text;
+          text.blur();
+        }
+      });
+
+      // Priority badge
+      const priorityLabels = { high: '高', medium: '中', low: '低' };
+      const prio = todo.priority || 'medium';
+      const priorityBadge = document.createElement('span');
+      priorityBadge.className = `todo-priority ${prio}`;
+      priorityBadge.textContent = priorityLabels[prio];
+      priorityBadge.title = '双击关联到计时器';
 
       // DDL badge and daily badge
       const ddlInfo = this.getDdlInfo(todo.ddl);
       li.appendChild(handle);
       li.appendChild(checkbox);
       li.appendChild(text);
+      li.appendChild(priorityBadge);
       if (todo.daily) {
         const dailyBadge = document.createElement('span');
         dailyBadge.className = 'todo-daily';
@@ -279,6 +433,27 @@ class TodoList {
         badge.className = `todo-ddl ${ddlInfo.cls}`;
         badge.textContent = ddlInfo.label;
         li.appendChild(badge);
+      }
+
+      // Pomodoro badge
+      if (todo.pomodoroCount > 0) {
+        const pomoBadge = document.createElement('span');
+        pomoBadge.className = 'todo-pomodoro';
+        pomoBadge.textContent = `🍅×${todo.pomodoroCount}`;
+        pomoBadge.dataset.taskId = todo.id;
+        pomoBadge.title = '点击关联此任务到计时器';
+        pomoBadge.style.cursor = 'pointer';
+        li.appendChild(pomoBadge);
+      }
+
+      // Subtask progress (visible collapsed)
+      const subtasks = todo.subtasks || [];
+      if (subtasks.length > 0) {
+        const subDone = subtasks.filter(s => s.completed).length;
+        const subProgSpan = document.createElement('span');
+        subProgSpan.className = 'todo-subtask-progress';
+        subProgSpan.textContent = `${subDone}/${subtasks.length}`;
+        li.appendChild(subProgSpan);
       }
 
       // Expand toggle
@@ -319,6 +494,59 @@ class TodoList {
           e.stopPropagation();
         });
         li.appendChild(notesEl);
+
+        // Subtasks
+        const subtaskContainer = document.createElement('div');
+        subtaskContainer.className = 'todo-subtasks';
+
+        subtasks.forEach((sub, idx) => {
+          const item = document.createElement('div');
+          item.className = 'todo-subtask-item';
+
+          const cb = document.createElement('div');
+          cb.className = `todo-subtask-checkbox${sub.completed ? ' checked' : ''}`;
+          cb.dataset.taskId = todo.id;
+          cb.dataset.subIdx = String(idx);
+
+          const subText = document.createElement('span');
+          subText.className = `todo-subtask-text${sub.completed ? ' done' : ''}`;
+          subText.textContent = sub.text;
+
+          const del = document.createElement('button');
+          del.className = 'todo-subtask-delete';
+          del.textContent = '×';
+          del.dataset.taskId = todo.id;
+          del.dataset.subIdx = String(idx);
+
+          item.appendChild(cb);
+          item.appendChild(subText);
+          item.appendChild(del);
+          subtaskContainer.appendChild(item);
+        });
+
+        // Add subtask input
+        const subInput = document.createElement('div');
+        subInput.className = 'todo-subtask-input';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '添加子任务...';
+        input.className = 'subtask-input-field';
+        input.dataset.taskId = todo.id;
+        input.maxLength = 60;
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+';
+        addBtn.addEventListener('click', () => {
+          const text = input.value.trim();
+          if (text) {
+            this.todos = addSubtask(todo.id, text);
+            this.render();
+          }
+        });
+        subInput.appendChild(input);
+        subInput.appendChild(addBtn);
+
+        subtaskContainer.appendChild(subInput);
+        li.appendChild(subtaskContainer);
       }
 
       this.listEl.appendChild(li);

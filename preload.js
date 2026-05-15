@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getWindowPosition: () => ipcRenderer.invoke('get-window-position'),
   setWindowPosition: (pos) => ipcRenderer.invoke('set-window-position', pos),
   getIsExpanded: () => ipcRenderer.invoke('get-is-expanded'),
-  setSkipTaskbar: (skip) => ipcRenderer.invoke('set-skip-taskbar', skip)
+  setSkipTaskbar: (skip) => ipcRenderer.invoke('set-skip-taskbar', skip),
+  quitApp: () => ipcRenderer.invoke('quit-app')
 });

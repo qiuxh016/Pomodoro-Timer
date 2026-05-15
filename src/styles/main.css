@@ -278,6 +278,24 @@ body {
   box-shadow: 0 6px 16px rgba(72, 201, 176, 0.4);
 }
 
+.timer-btn.skip-btn {
+  background: #FFF0E0;
+  color: #E88830;
+}
+
+.timer-btn.skip-btn:hover {
+  background: #FFE4C8;
+}
+
+.timer-btn.extend-btn {
+  background: #E8F4FD;
+  color: #4A9ED8;
+}
+
+.timer-btn.extend-btn:hover {
+  background: #D0EAF8;
+}
+
 /* ===== Mode Switcher ===== */
 #mode-switcher {
   display: flex;
@@ -622,6 +640,15 @@ body {
   color: #C0CCD6;
 }
 
+.todo-text[contenteditable="true"] {
+  outline: none;
+  background: #EEF4F8;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  box-shadow: 0 0 0 2px rgba(93, 173, 226, 0.15);
+}
+
 /* DDL Badge */
 .todo-ddl {
   font-size: 10px;
@@ -890,12 +917,410 @@ body {
   100% { opacity: 0; transform: translateY(-40px) scale(0.3); }
 }
 
+/* ===== Cat Wiggle (hover pet) ===== */
+.cat-wiggle {
+  animation: catWiggle 0.5s ease-in-out;
+}
+
+@keyframes catWiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(3deg) scale(1.03); }
+  50% { transform: rotate(-3deg) scale(1.03); }
+  75% { transform: rotate(2deg) scale(1.02); }
+}
+
+/* ===== Cat Spin (scroll) ===== */
+.cat-spin {
+  animation: catSpin 0.4s ease-out;
+}
+
+@keyframes catSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(15deg); }
+}
+
+/* ===== Outfit Selector ===== */
+#outfit-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.outfit-item {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #D8E0E8;
+  border-radius: 8px;
+  background: #F5F7F9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.outfit-item:hover {
+  border-color: var(--mint);
+  background: #F0FAF7;
+}
+
+.outfit-item.equipped {
+  border-color: var(--mint);
+  background: var(--mint-bg);
+  box-shadow: 0 0 0 2px rgba(72, 201, 176, 0.2);
+}
+
+.outfit-item.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.outfit-item .outfit-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 38px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #3D4F5F;
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.outfit-item:hover .outfit-tooltip {
+  display: block;
+}
+
 /* ===== Settings Checkbox ===== */
 .setting-row input[type="checkbox"] {
   width: 18px;
   height: 18px;
   accent-color: var(--mint);
   cursor: pointer;
+}
+
+/* ===== Task Selector ===== */
+#task-selector-area {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+#task-select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #E4E8EB;
+  border-radius: 10px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text);
+  background: #F8FAFB;
+  outline: none;
+  cursor: pointer;
+}
+
+#task-select:focus {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 2px rgba(72, 201, 176, 0.12);
+}
+
+/* ===== Priority Selector Button ===== */
+.priority-selector {
+  width: 34px;
+  height: 34px;
+  border: 2px solid #D8E0E8;
+  background: #F5F7F9;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.priority-selector:hover {
+  border-color: var(--blue);
+}
+
+.priority-selector[data-priority="high"] { border-color: #FF7675; background: #FFF0F0; }
+.priority-selector[data-priority="medium"] { border-color: #F0A060; background: #FFF8F0; }
+.priority-selector[data-priority="low"] { border-color: #52C9A6; background: #F0FAF7; }
+
+/* ===== Priority Badge on Task ===== */
+.todo-priority {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.todo-priority.high { background: #FFE8E8; color: #D63031; }
+.todo-priority.medium { background: #FFF4E8; color: #D08040; }
+.todo-priority.low { background: #E8F6F1; color: #3A9E7E; }
+
+/* ===== Pomodoro Badge ===== */
+.todo-pomodoro {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: #FFF0E0;
+  color: #E87840;
+}
+
+/* ===== Subtask Styles ===== */
+.todo-subtasks {
+  flex: 0 0 100%;
+  margin-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.todo-subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.todo-subtask-checkbox {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #D8E0E8;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.todo-subtask-checkbox:hover {
+  border-color: var(--mint);
+}
+
+.todo-subtask-checkbox.checked {
+  background: var(--mint);
+  border-color: var(--mint);
+}
+
+.todo-subtask-checkbox.checked::after {
+  content: '✓';
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.todo-subtask-text {
+  font-size: 12px;
+  color: var(--text);
+  flex: 1;
+}
+
+.todo-subtask-text.done {
+  text-decoration: line-through;
+  color: #C0CCD6;
+}
+
+.todo-subtask-delete {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: #D0D8E0;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.15s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.todo-subtask-item:hover .todo-subtask-delete {
+  opacity: 1;
+}
+
+.todo-subtask-delete:hover {
+  color: var(--red);
+  background: #FFF0F0;
+}
+
+.todo-subtask-input {
+  flex: 0 0 100%;
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.todo-subtask-input input {
+  flex: 1;
+  border: 1px solid #E0E8EE;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  background: white;
+}
+
+.todo-subtask-input input:focus {
+  border-color: var(--mint);
+}
+
+.todo-subtask-input button {
+  border: none;
+  background: var(--mint);
+  color: white;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.todo-subtask-input button:hover {
+  background: #3CBF9E;
+}
+
+.todo-subtask-progress {
+  font-size: 10px;
+  color: var(--text-light);
+  font-weight: 500;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ===== Filter Bar ===== */
+#todo-filter-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+#filter-search {
+  flex: 1;
+  border: 1px solid #E4E8EB;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  background: #F8FAFB;
+  min-width: 0;
+  transition: all 0.2s;
+}
+
+#filter-search:focus {
+  border-color: var(--blue);
+  background: white;
+  box-shadow: 0 0 0 2px rgba(93, 173, 226, 0.12);
+}
+
+#filter-search::placeholder {
+  color: #BCC8D4;
+}
+
+#filter-priority {
+  border: 1px solid #E4E8EB;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--text);
+  background: #F8FAFB;
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#filter-priority:focus {
+  border-color: var(--blue);
+}
+
+/* ===== Clear Completed Button ===== */
+#btn-clear-completed {
+  border: 1px solid #FFD0D0;
+  background: #FFF5F5;
+  color: #E06060;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+#btn-clear-completed:hover {
+  background: #FFE8E8;
+  border-color: #FFB0B0;
+  color: #D04040;
+}
+
+/* ===== Cat Context Menu ===== */
+.cat-context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #E8ECF0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 6px 0;
+  min-width: 150px;
+  z-index: 100;
+  -webkit-app-region: no-drag;
+  animation: ctxIn 0.15s ease;
+}
+
+@keyframes ctxIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.ctx-menu-item {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-app-region: no-drag;
+}
+
+.ctx-menu-item:hover {
+  background: #F5F7F9;
+}
+
+.ctx-menu-danger {
+  color: #E84040;
+}
+
+.ctx-menu-danger:hover {
+  background: #FFF0F0;
+}
+
+.ctx-menu-divider {
+  height: 1px;
+  background: #E8ECF0;
+  margin: 4px 12px;
 }
 
 /* ===== Utility ===== */

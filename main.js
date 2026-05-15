@@ -109,6 +109,10 @@ ipcMain.handle('set-skip-taskbar', (event, skip) => {
   }
 });
 
+ipcMain.handle('quit-app', () => {
+  app.quit();
+});
+
 // If second instance launched, focus existing window
 app.on('second-instance', () => {
   if (mainWindow) {

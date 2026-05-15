@@ -9,6 +9,10 @@ class CatPet {
     this.catHappyMouth = document.getElementById('cat-happy-mouth');
     this.catTail = document.getElementById('cat-tail');
     this.catSleeping = document.getElementById('cat-sleeping');
+    this.catGlasses = document.getElementById('cat-glasses');
+    this.catBow = document.getElementById('cat-bow');
+    this.catHat = document.getElementById('cat-hat');
+    this.catCrown = document.getElementById('cat-crown');
 
     this.state = 'idle';
     this.isDragging = false;
@@ -18,6 +22,8 @@ class CatPet {
     this.bubbleTimer = null;
     this.sleepTimer = null;
     this.motivationTimer = null;
+    this.hoverTimer = null;
+    this.outfits = loadOutfits();
 
     this.motivationMessages = [
       '加油！', '专注的你最棒！', '再坚持一下~', '你可以的！',
@@ -37,6 +43,141 @@ class CatPet {
     this.setupDrag();
     this.startBlink();
     this.startSleepTimer();
+    this.setupHoverPet();
+    this.setupScrollSpin();
+    this.applyOutfit();
+    this.renderOutfitSelector();
+    this.createContextMenu();
+    this.setupContextMenuClose();
+  }
+
+  createContextMenu() {
+    this.ctxMenu = document.createElement('div');
+    this.ctxMenu.id = 'cat-context-menu';
+    this.ctxMenu.className = 'cat-context-menu';
+    this.ctxMenu.innerHTML = `
+      <div class="ctx-menu-item" data-action="toggle">显示/隐藏面板</div>
+      <div class="ctx-menu-divider"></div>
+      <div class="ctx-menu-item ctx-menu-danger" data-action="quit">退出应用</div>
+    `;
+    document.body.appendChild(this.ctxMenu);
+
+    this.ctxMenu.addEventListener('click', (e) => {
+      const item = e.target.closest('.ctx-menu-item');
+      if (!item) return;
+      const action = item.dataset.action;
+      this.ctxMenu.classList.add('hidden');
+      if (action === 'toggle') {
+        if (window.app) window.app.togglePanel();
+      } else if (action === 'quit') {
+        if (window.electronAPI && window.electronAPI.quitApp) {
+          window.electronAPI.quitApp();
+        }
+      }
+    });
+  }
+
+  setupContextMenuClose() {
+    document.addEventListener('click', () => {
+      if (this.ctxMenu) this.ctxMenu.classList.add('hidden');
+    });
+    document.addEventListener('contextmenu', (e) => {
+      // Don't close our own menu's contextmenu
+      if (!e.target.closest('#cat-container')) {
+        if (this.ctxMenu) this.ctxMenu.classList.add('hidden');
+      }
+    });
+  }
+
+  setupHoverPet() {
+    if (!this.container) return;
+    this.container.addEventListener('mouseenter', () => {
+      this.hoverTimer = setTimeout(() => {
+        if (this.state === 'idle' && !this.isDragging) {
+          this.showBubble('呼噜呼噜~');
+          this.svg.classList.add('cat-wiggle');
+          setTimeout(() => this.svg.classList.remove('cat-wiggle'), 500);
+        }
+      }, 1500);
+    });
+    this.container.addEventListener('mouseleave', () => {
+      clearTimeout(this.hoverTimer);
+      this.hoverTimer = null;
+    });
+  }
+
+  setupScrollSpin() {
+    if (!this.container) return;
+    this.container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : -1;
+      this.svg.style.transform = `rotate(${15 * dir}deg)`;
+      setTimeout(() => {
+        this.svg.style.transform = '';
+      }, 400);
+    }, { passive: false });
+  }
+
+  applyOutfit() {
+    const acc = {
+      glasses: this.catGlasses,
+      bow: this.catBow,
+      hat: this.catHat,
+      crown: this.catCrown
+    };
+    Object.values(acc).forEach(el => { if (el) el.setAttribute('opacity', '0'); });
+    const equipped = this.outfits.equipped;
+    if (equipped && acc[equipped]) {
+      acc[equipped].setAttribute('opacity', '1');
+    }
+  }
+
+  refreshOutfits() {
+    this.outfits = loadOutfits();
+    this.renderOutfitSelector();
+  }
+
+  equipOutfit(name) {
+    this.outfits = equipOutfitStorage(name);
+    this.applyOutfit();
+    this.renderOutfitSelector();
+  }
+
+  renderOutfitSelector() {
+    const container = document.getElementById('outfit-options');
+    const selector = document.getElementById('outfit-selector');
+    if (!container || !selector) return;
+
+    container.innerHTML = '';
+    const hasAny = OUTFIT_TIERS.some(t => this.outfits.unlocked.includes(t.name));
+
+    if (!hasAny) {
+      selector.style.display = 'none';
+      return;
+    }
+    selector.style.display = '';
+
+    OUTFIT_TIERS.forEach(tier => {
+      const unlocked = this.outfits.unlocked.includes(tier.name);
+      const equipped = this.outfits.equipped === tier.name;
+
+      const item = document.createElement('div');
+      item.className = `outfit-item${equipped ? ' equipped' : ''}${!unlocked ? ' locked' : ''}`;
+      item.textContent = unlocked ? tier.label.charAt(0) : '?';
+
+      const tooltip = document.createElement('span');
+      tooltip.className = 'outfit-tooltip';
+      tooltip.textContent = unlocked ? `${tier.label}${equipped ? ' ✓' : ''}` : tier.desc;
+      item.appendChild(tooltip);
+
+      if (unlocked) {
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.equipOutfit(tier.name);
+        });
+      }
+      container.appendChild(item);
+    });
   }
 
   setupDrag() {
@@ -47,20 +188,50 @@ class CatPet {
       this.dragStart = { x: e.screenX, y: e.screenY };
       this.cancelSleep();
 
+      let moveRaf = null;
+      let accDx = 0;
+      let accDy = 0;
       const onMove = (ev) => {
         if (!this.isDragging) return;
         const dx = ev.screenX - this.dragStart.x;
         const dy = ev.screenY - this.dragStart.y;
-        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) this.hasMoved = true;
         this.dragStart = { x: ev.screenX, y: ev.screenY };
-        window.electronAPI.setWindowPosition({
-          x: window.screenX + dx,
-          y: window.screenY + dy
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) this.hasMoved = true;
+        accDx += dx;
+        accDy += dy;
+        if (moveRaf != null) return;
+        moveRaf = requestAnimationFrame(() => {
+          moveRaf = null;
+          if (!this.isDragging || !window.electronAPI) {
+            accDx = 0;
+            accDy = 0;
+            return;
+          }
+          if (accDx !== 0 || accDy !== 0) {
+            window.electronAPI.setWindowPosition({
+              x: window.screenX + accDx,
+              y: window.screenY + accDy
+            });
+            accDx = 0;
+            accDy = 0;
+          }
         });
       };
 
       const onUp = () => {
         this.isDragging = false;
+        if (moveRaf != null) {
+          cancelAnimationFrame(moveRaf);
+          moveRaf = null;
+        }
+        if ((accDx !== 0 || accDy !== 0) && window.electronAPI) {
+          window.electronAPI.setWindowPosition({
+            x: window.screenX + accDx,
+            y: window.screenY + accDy
+          });
+          accDx = 0;
+          accDy = 0;
+        }
         window.removeEventListener('mousemove', onMove);
         window.removeEventListener('mouseup', onUp);
         if (!this.hasMoved && window.app) {
@@ -93,7 +264,14 @@ class CatPet {
       }
     });
 
-    this.container.addEventListener('contextmenu', (e) => e.preventDefault());
+    this.container.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (!this.ctxMenu) return;
+      const rect = this.container.getBoundingClientRect();
+      this.ctxMenu.style.left = (rect.left + 70) + 'px';
+      this.ctxMenu.style.top = (rect.top + 20) + 'px';
+      this.ctxMenu.classList.remove('hidden');
+    });
   }
 
   startBlink() {

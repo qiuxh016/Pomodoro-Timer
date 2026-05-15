@@ -40,6 +40,9 @@ function loadTodos() {
     if (t.order === undefined) t.order = 0;
     if (t.daily === undefined) t.daily = false;
     if (t.lastCompletedDate === undefined) t.lastCompletedDate = null;
+    if (t.pomodoroCount === undefined) t.pomodoroCount = 0;
+    if (t.priority === undefined) t.priority = 'medium';
+    if (t.subtasks === undefined) t.subtasks = [];
     if (t.order > maxOrder) maxOrder = t.order;
   });
 
@@ -67,7 +70,7 @@ function saveTodos(todos) {
   storage.set('todos', todos);
 }
 
-function addTodo(text, ddl = null, notes = '', daily = false, order = null) {
+function addTodo(text, ddl = null, notes = '', daily = false, order = null, priority = 'medium') {
   const todos = loadTodos();
   if (order === null) {
     const maxOrder = todos.reduce((max, t) => Math.max(max, t.order || 0), -1);
@@ -82,7 +85,10 @@ function addTodo(text, ddl = null, notes = '', daily = false, order = null) {
     notes,
     order,
     daily,
-    lastCompletedDate: null
+    lastCompletedDate: null,
+    pomodoroCount: 0,
+    priority,
+    subtasks: []
   });
   saveTodos(todos);
   return todos;
@@ -108,6 +114,16 @@ function deleteTodo(id) {
   return todos;
 }
 
+function updateTodoText(id, text) {
+  const todos = loadTodos();
+  const todo = todos.find(t => t.id === id);
+  if (todo) {
+    todo.text = text;
+    saveTodos(todos);
+  }
+  return todos;
+}
+
 function updateTodoNotes(id, notes) {
   const todos = loadTodos();
   const todo = todos.find(t => t.id === id);
@@ -130,7 +146,9 @@ function reorderTodos(orderedIds) {
 
 // Timer state
 function loadTimerState() {
-  return storage.get('timerState') || { mode: 'work', cycles: 0 };
+  const state = storage.get('timerState') || { mode: 'work', cycles: 0 };
+  if (state.activeTaskId === undefined) state.activeTaskId = null;
+  return state;
 }
 
 function saveTimerState(state) {
@@ -201,4 +219,91 @@ function updateFocusStreak() {
   streakData.lastDate = today;
   storage.set('focusStreak', streakData);
   return streakData;
+}
+
+// Cat outfits
+const OUTFIT_TIERS = [
+  { name: 'glasses', label: '眼镜', streak: 3, desc: '连续专注3天解锁' },
+  { name: 'bow', label: '蝴蝶结', streak: 7, desc: '连续专注7天解锁' },
+  { name: 'hat', label: '帽子', streak: 14, desc: '连续专注14天解锁' },
+  { name: 'crown', label: '皇冠', streak: 30, desc: '连续专注30天解锁' }
+];
+
+function loadOutfits() {
+  return storage.get('outfits') || { unlocked: [], equipped: null };
+}
+
+function saveOutfits(data) {
+  storage.set('outfits', data);
+}
+
+function checkAndUnlockOutfits(streak) {
+  const data = loadOutfits();
+  let newlyUnlocked = [];
+  OUTFIT_TIERS.forEach(tier => {
+    if (streak >= tier.streak && !data.unlocked.includes(tier.name)) {
+      data.unlocked.push(tier.name);
+      newlyUnlocked.push(tier);
+    }
+  });
+  if (newlyUnlocked.length > 0) {
+    saveOutfits(data);
+  }
+  return { data, newlyUnlocked };
+}
+
+function equipOutfitStorage(name) {
+  const data = loadOutfits();
+  data.equipped = data.equipped === name ? null : name;
+  saveOutfits(data);
+  return data;
+}
+
+// Clear completed todos
+function clearCompletedTodos() {
+  const todos = loadTodos();
+  const remaining = todos.filter(t => !t.completed);
+  saveTodos(remaining);
+  return remaining;
+}
+
+// Subtask CRUD
+function addSubtask(taskId, text) {
+  const todos = loadTodos();
+  const todo = todos.find(t => t.id === taskId);
+  if (todo) {
+    todo.subtasks.push({ text, completed: false });
+    saveTodos(todos);
+  }
+  return todos;
+}
+
+function toggleSubtask(taskId, subIdx) {
+  const todos = loadTodos();
+  const todo = todos.find(t => t.id === taskId);
+  if (todo && todo.subtasks[subIdx]) {
+    todo.subtasks[subIdx].completed = !todo.subtasks[subIdx].completed;
+    saveTodos(todos);
+  }
+  return todos;
+}
+
+function deleteSubtask(taskId, subIdx) {
+  const todos = loadTodos();
+  const todo = todos.find(t => t.id === taskId);
+  if (todo && todo.subtasks[subIdx]) {
+    todo.subtasks.splice(subIdx, 1);
+    saveTodos(todos);
+  }
+  return todos;
+}
+
+function updatePomodoroCount(taskId) {
+  const todos = loadTodos();
+  const todo = todos.find(t => t.id === taskId);
+  if (todo) {
+    todo.pomodoroCount = (todo.pomodoroCount || 0) + 1;
+    saveTodos(todos);
+  }
+  return todos;
 }

@@ -82,6 +82,25 @@
         <path d="M64 53 Q68 56 72 53" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round"/>
         <text x="78" y="32" font-size="8" fill="#8A9AA8" font-family="inherit" id="cat-zzz">Z</text>
       </g>
+      <!-- Accessories (unlockable) -->
+      <g id="cat-glasses" opacity="0">
+        <circle cx="45" cy="53" r="8" fill="none" stroke="#4A4A4A" stroke-width="1.5"/>
+        <circle cx="67" cy="53" r="8" fill="none" stroke="#4A4A4A" stroke-width="1.5"/>
+        <line x1="53" y1="53" x2="59" y2="53" stroke="#4A4A4A" stroke-width="1.5"/>
+      </g>
+      <g id="cat-bow" opacity="0">
+        <path d="M55 30 L48 26 L48 34 Z" fill="#FF6B8A"/>
+        <path d="M55 30 L62 26 L62 34 Z" fill="#FF6B8A"/>
+        <circle cx="55" cy="30" r="3" fill="#FF4570"/>
+      </g>
+      <g id="cat-hat" opacity="0">
+        <rect x="48" y="18" width="24" height="14" rx="1" fill="#5C4A3A"/>
+        <rect x="42" y="30" width="36" height="3" rx="1" fill="#5C4A3A"/>
+      </g>
+      <g id="cat-crown" opacity="0">
+        <polygon points="48,24 46,16 52,20 56,12 60,20 66,16 64,24" fill="#F5C842" stroke="#D4A830" stroke-width="0.8"/>
+        <rect x="44" y="24" width="24" height="3" rx="0.5" fill="#F5C842"/>
+      </g>
     </svg>
     <!-- Speech bubble -->
     <div id="speech-bubble" class="hidden"><span id="bubble-text"></span></div>
@@ -111,6 +130,13 @@
         <button id="btn-start" class="timer-btn primary" onclick="window.app.timer.start()">开始</button>
         <button id="btn-pause" class="timer-btn hidden" onclick="window.app.timer.pause()">暂停</button>
         <button id="btn-reset" class="timer-btn" onclick="window.app.timer.reset()">重置</button>
+        <button id="btn-skip" class="timer-btn skip-btn hidden" onclick="window.app.timer.skipBreak()">跳过休息</button>
+        <button id="btn-extend" class="timer-btn extend-btn hidden" onclick="window.app.timer.extendWork()">+5分钟</button>
+      </div>
+      <div id="task-selector-area">
+        <select id="task-select" title="关联任务">
+          <option value="">-- 关联任务 --</option>
+        </select>
       </div>
       <div id="mode-switcher">
         <button class="mode-btn active" data-mode="work">工作</button>
@@ -127,6 +153,10 @@
         <div class="setting-row"><span class="setting-label">长休时长</span><span><input type="number" id="setting-long" class="setting-input" min="1" max="120" value="15"/><span class="setting-unit"> 分</span></span></div>
         <div class="setting-row"><span class="setting-label">长休间隔</span><span><input type="number" id="setting-interval" class="setting-input" min="1" max="10" value="4"/><span class="setting-unit"> 轮</span></span></div>
         <div class="setting-row"><span class="setting-label">自动开始休息</span><input type="checkbox" id="setting-autoBreak" checked/></div>
+        <div class="setting-row" id="outfit-selector" style="display:none">
+          <span class="setting-label">猫咪装扮</span>
+          <div id="outfit-options"></div>
+        </div>
       </div>
     </div>
     <div id="panel-divider"></div>
@@ -136,11 +166,22 @@
         <input id="todo-input" type="text" placeholder="添加新任务..." maxlength="100"/>
         <input id="todo-ddl" type="date" title="截止日期"/>
         <button id="btn-daily" title="日常任务（每天自动重置）">🔄</button>
+        <button id="btn-priority" class="priority-selector" data-priority="medium" title="优先级：中">🟡</button>
         <button id="btn-add-todo">+</button>
       </div>
       <div id="todo-progress" class="hidden">
         <div id="todo-progress-text">已完成 0/0</div>
         <div id="todo-progress-bar"><div id="todo-progress-fill"></div></div>
+      </div>
+      <div id="todo-filter-bar">
+        <input id="filter-search" type="text" placeholder="搜索任务..." maxlength="50"/>
+        <select id="filter-priority" title="按优先级筛选">
+          <option value="all">全部</option>
+          <option value="high">高</option>
+          <option value="medium">中</option>
+          <option value="low">低</option>
+        </select>
+        <button id="btn-clear-completed" title="清除所有已完成任务">清除已完成</button>
       </div>
       <ul id="todo-list"></ul>
       <div id="todo-empty" class="empty-hint">还没有任务，快来添加吧~</div>
