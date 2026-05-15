@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\cursor\\\\Pomodoro-Timer\" -Recurse -Depth 2)",
+      "Bash(Select-Object Mode, Name, Length)",
+      "PowerShell(npm *)",
+      "PowerShell(npm install *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(Get-Process *)",
+      "Bash(cmd.exe //c \"rmdir /s /q D:\\\\cursor\\\\Pomodoro-Timer\\\\node_modules\\\\electron\")",
+      "PowerShell(Move-Item *)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(cd D:\\\\cursor\\\\Pomodoro-Timer; if \\(Test-Path \"node_modules\\\\electron\\\\install.js\"\\) { Write-Output \"Electron package exists\"; } else { Write-Output \"Not found\"; }; $env:ELECTRON_MIRROR = \"https://npmmirror.com/mirrors/electron/\"; node node_modules\\\\electron\\\\install.js 2>&1)",
+      "Bash(Get-Process -Name \"electron\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object Id, ProcessName)",
+      "PowerShell(Start-Process -FilePath \"node_modules\\\\electron\\\\dist\\\\electron.exe\" -ArgumentList \".\" -WindowStyle Normal)",
+      "PowerShell(& \"node_modules\\\\electron\\\\dist\\\\electron.exe\" \".\" 2>&1)",
+      "PowerShell(& \"node_modules\\\\electron\\\\dist\\\\electron.exe\" \".\" --enable-logging 2>&1 | Out-String)",
+      "Bash(tasklist)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git config *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
