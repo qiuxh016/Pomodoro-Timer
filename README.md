@@ -1,135 +1,139 @@
-# 🐱 猫咪番茄钟 (Cat Pomodoro)
+# 🐱 Cat Pomodoro
 
-一只住在你桌面上的可爱猫咪桌宠，集番茄钟、待办列表、日常任务于一体，帮你专注工作、快乐学习。
+A cute desktop cat pet that lives on your desktop, combining a Pomodoro timer, to-do list, and daily tasks to help you focus and study happily.
 
-## 功能特点
+## Features
 
-### 🐱 桌面猫咪桌宠
-- 可爱的小橘猫常驻桌面，多种动画状态：呼吸、专注、开心跳跃、睡觉
-- 可拖拽移动位置，始终置顶
-- 双击猫咪快速开始/暂停计时，单击展开功能面板
-- 点击猫咪会冒出 ❤️💕✨ 浮动爱心
-- 闲置 60 秒后自动蜷缩入睡
-- 滚动鼠标滚轮猫咪旋转
-- 悬停 1.5 秒触发抚摸反应
-- 右键猫咪弹出菜单（紧贴猫咪）：显示/隐藏面板、退出应用
-- 展开面板后点击空白区域即可收起
+### 🐱 Desktop Cat Pet
+- A cute orange tabby cat lives on your desktop with multiple animation states: breathing, focused, happy jumping, sleeping
+- Draggable to any position, always on top
+- Double-click the cat to quickly start/pause the timer; single-click to expand the control panel
+- Clicking the cat makes ❤️💕✨ floating hearts appear
+- Auto curls up to sleep after 60 seconds of inactivity
+- Scroll wheel rotates the cat
+- Hover for 1.5 seconds triggers a petting reaction
+- Right-click the cat for a context menu (attached to the cat): show/hide panel, quit app
+- Click anywhere outside the panel to collapse it
 
-### ⏱ 番茄钟
-- 工作 / 短休 / 长休 三种模式，时长可自定义
-- 圆形进度环直观显示剩余时间
-- 收起面板时猫咪下方显示倒计时
-- 工作完成时播放提示音，猫咪开心跳跃
-- 专注中途弹出鼓励气泡（每 3-5 分钟）
-- 半程里程碑提醒
-- 跳过休息 / 延长 5 分钟
-- 自动开始休息（可开关）
-- 连续专注天数统计，🔥 火焰标识
+### ⏱ Pomodoro Timer
+- Three modes: Work / Short Break / Long Break, with customizable durations
+- Circular progress ring visually displays remaining time
+- Countdown shown below the cat when panel is collapsed
+- Alert sound plays on work completion; cat jumps for joy
+- Encouraging bubbles pop up during focus sessions (every 3-5 minutes)
+- Halfway milestone reminders
+- Skip break / Extend 5 minutes
+- Auto-start breaks (toggleable)
+- Consecutive focus day tracking with 🔥 streak indicator
 
-### 🎖 猫咪装扮解锁
-- 连续专注 3 天解锁眼镜
-- 连续专注 7 天解锁蝴蝶结
-- 连续专注 14 天解锁帽子
-- 连续专注 30 天解锁皇冠
+### 🎖 Cat Accessory Unlocks
+- 3 consecutive focus days: unlock Glasses
+- 7 consecutive focus days: unlock Bow
+- 14 consecutive focus days: unlock Hat
+- 30 consecutive focus days: unlock Crown
 
-### 📋 待办列表
-- 单行紧凑布局：任务名、优先级、截止日期、子任务进度、番茄计数均在同一行
-- 添加 / 完成 / 删除任务（删除按钮始终可见，一次点击即可）
-- 支持设置截止日期，彩色标签显示：红色逾期、橙色今天/明天、蓝色未来
-- 点击 ▼ 展开详情：子任务清单 + 添加子任务 + 备注编辑
-- 拖拽排序，自由调整顺序
-- **优先级标签**：高 🔴 / 中 🟡 / 低 🟢，点击标签循环切换
-- **子任务**：进度以绿色药丸标签显示（如"2/5"），展开后查看与编辑
-- **关联番茄钟**：点击任务的 🍅 徽章可将计时器关联到该任务，专注完成自动累加番茄数
-- **搜索筛选**：按关键词搜索、按优先级筛选
-- **一键清除已完成**：批量删除已完成任务
-- 完成进度条
-- 全部完成时猫咪庆祝
+### 📋 To-Do List
+- Compact single-row layout: task name, priority, due date, subtask progress, Pomodoro count all in one row
+- Add / Complete / Delete tasks (delete button always visible, one-click removal)
+- Set due dates with color-coded labels: red for overdue, orange for today/tomorrow, blue for future
+- Click ▼ to expand details: subtask list + add subtask + note editing
+- Drag-and-drop sorting to rearrange freely
+- **Priority labels**: High 🔴 / Medium 🟡 / Low 🟢, click to cycle through
+- **Subtasks**: Progress shown as green pill badge (e.g. "2/5"), expand to view and edit
+- **Linked Pomodoro**: Click a task's 🍅 badge to link the timer to that task; completed focus sessions auto-increment the Pomodoro count
+- **Search & Filter**: Search by keyword, filter by priority
+- **Clear Completed**: Batch delete all completed tasks
+- Completion progress bar
+- Cat celebrates when all tasks are done
 
-### 🔄 日常任务
-- 每日重复任务，每天自动重置
-- 独立"日常"标签，排列在列表最上方
+### 🔄 Daily Tasks
+- Repeating daily tasks that auto-reset each day
+- Separate "Daily" tab, displayed at the top of the list
 
-### ⌨ 快捷键
-- `空格` 开始 / 暂停计时
-- `R` 重置计时
+### ⌨ Keyboard Shortcuts
+- `Space` Start / Pause timer
+- `R` Reset timer
 
-### 系统托盘
-- 系统托盘常驻图标
-- 右键菜单：显示/隐藏猫咪、重置位置、退出
+### System Tray
+- Persistent system tray icon
+- Right-click menu: show/hide cat, reset position, quit
 
-## 技术栈
+## Screenshot
 
-- **Electron** — 桌面框架，无边框透明窗口、始终置顶
-- **HTML/CSS/JS** — 原生实现，无前端框架
-- **SVG + CSS 动画** — 猫咪图形和动画
-- **localStorage** — 本地数据持久化
-- **Web Audio API** — 完成提示音
-- **Web Notifications API** — 桌面通知
+![Cat Pomodoro](screenshots/cat-idle.png)
 
-## 项目结构
+## Tech Stack
+
+- **Electron** — Desktop framework, frameless transparent window, always on top
+- **HTML/CSS/JS** — Vanilla implementation, no frontend framework
+- **SVG + CSS Animations** — Cat graphics and animations
+- **localStorage** — Local data persistence
+- **Web Audio API** — Completion notification sound
+- **Web Notifications API** — Desktop notifications
+
+## Project Structure
 
 ```
 Pomodoro-Timer/
 ├── package.json
-├── main.js              # Electron 主进程
-├── preload.js           # 预加载脚本，IPC 通信
-├── start.bat            # Windows 启动脚本
+├── main.js              # Electron main process
+├── preload.js           # Preload script, IPC communication
+├── start.bat            # Windows startup script
 ├── src/
-│   ├── index.html       # 主页面
+│   ├── index.html       # Main page
 │   ├── styles/
-│   │   └── main.css     # 所有样式（含动画）
+│   │   └── main.css     # All styles (including animations)
 │   └── js/
-│       ├── cat.js       # 猫咪动画与交互
-│       ├── timer.js     # 番茄钟逻辑
-│       ├── todo.js      # 待办列表逻辑
-│       ├── app.js       # 应用主控
-│       └── storage.js   # 数据持久化
+│       ├── cat.js       # Cat animation & interaction
+│       ├── timer.js     # Pomodoro timer logic
+│       ├── todo.js      # To-do list logic
+│       ├── app.js       # App controller
+│       └── storage.js   # Data persistence
 ```
 
-## 快速开始
+## Quick Start
 
-### 环境要求
+### Requirements
 - Node.js 18+
-- npm 或 yarn
+- npm or yarn
 
-### 安装运行
+### Install & Run
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动应用
+# Start the app
 npm start
 ```
 
-Windows 用户可直接双击 `start.bat`。
+Windows users can double-click `start.bat` directly.
 
-### 中国用户
-如果 Electron 下载缓慢，可设置国内镜像：
+### Chinese Users
+If Electron download is slow, set a mirror:
 
 ```bash
 set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/
 npm install
 ```
 
-## 使用说明
+## Usage
 
-| 操作 | 说明 |
+| Action | Description |
 |------|------|
-| 单击猫咪 | 展开 / 收起功能面板 |
-| 展开后点击空白区域 | 收起面板 |
-| 双击猫咪 | 开始 / 暂停番茄钟 |
-| 右键猫咪 | 弹出快捷菜单（显示/隐藏面板、退出应用） |
-| 拖拽猫咪 | 移动桌面位置 |
-| 空格键 | 开始 / 暂停计时 |
-| R 键 | 重置计时 |
-| ⋮⋮ 手柄 | 拖拽调整任务顺序 |
-| 双击任务名 | 编辑任务名称 |
-| ▼ 按钮 | 展开详情（子任务 + 备注） |
-| 点击优先级标签 | 循环切换高/中/低优先级 |
-| 🔄 按钮 | 切换日常任务模式 |
-| 🍅 徽章 | 点击关联任务到番茄钟 |
+| Single-click cat | Expand / Collapse control panel |
+| Click empty area (panel open) | Collapse panel |
+| Double-click cat | Start / Pause Pomodoro timer |
+| Right-click cat | Context menu (show/hide panel, quit app) |
+| Drag cat | Move around the desktop |
+| Space key | Start / Pause timer |
+| R key | Reset timer |
+| ⋮⋮ Handle | Drag to reorder tasks |
+| Double-click task name | Edit task name |
+| ▼ Button | Expand details (subtasks + notes) |
+| Click priority label | Cycle through High/Medium/Low priority |
+| 🔄 Button | Toggle daily task mode |
+| 🍅 Badge | Click to link task to Pomodoro timer |
 
 ## License
 
