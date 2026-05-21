@@ -30,7 +30,7 @@ const storage = new StorageManager();
 // Todo CRUD
 function loadTodos() {
   const todos = storage.get('todos') || [];
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDate();
   let maxOrder = 0;
 
   // Migrate old tasks without new fields
@@ -100,7 +100,7 @@ function toggleTodo(id) {
   if (todo) {
     todo.completed = !todo.completed;
     if (todo.daily) {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalDate();
       todo.lastCompletedDate = todo.completed ? today : null;
     }
     saveTodos(todos);
@@ -191,9 +191,21 @@ function saveSettings(settings) {
   storage.set('settings', settings);
 }
 
+// Get local date string YYYY-MM-DD
+function getLocalDate(date) {
+  const d = date || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function getYesterdayLocalDate() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return getLocalDate(d);
+}
+
 // Daily stats
 function loadDailyStats() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDate();
   const stats = storage.get('dailyStats') || { date: today, count: 0 };
   if (stats.date !== today) {
     return { date: today, count: 0 };
@@ -214,8 +226,8 @@ function loadFocusStreak() {
 }
 
 function updateFocusStreak() {
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const today = getLocalDate();
+  const yesterday = getYesterdayLocalDate();
   const streakData = loadFocusStreak();
 
   if (streakData.lastDate === today) {

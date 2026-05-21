@@ -219,7 +219,6 @@ class TodoList {
   getInsertOrder(ddl, daily) {
     const incomplete = this.todos.filter(t => !t.completed);
     const group = daily ? incomplete.filter(t => t.daily) : incomplete.filter(t => !t.daily);
-    const today = new Date().toISOString().slice(0, 10);
 
     if (group.length === 0) return 0;
 
@@ -256,8 +255,10 @@ class TodoList {
   // ---- DDL Helpers ----
   getDdlInfo(ddl) {
     if (!ddl) return null;
-    const today = new Date().toISOString().slice(0, 10);
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const today = getLocalDate();
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const tomorrow = getLocalDate(d);
 
     if (ddl < today) return { cls: 'overdue', label: '已逾期' };
     if (ddl === today) return { cls: 'today', label: '今天' };
